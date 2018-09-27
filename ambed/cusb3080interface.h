@@ -22,8 +22,8 @@
 //    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
-#ifndef cusb3000tgointerface_h
-#define cusb3000tgointerface_h
+#ifndef cusb3080interface_h
+#define cusb3080interface_h
 
 
 #include "ftd2xx.h"
@@ -33,14 +33,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 // class
 
-class CUsb3000tgoInterface : public CUsb3000Interface
+class CUsb3080Interface : public CUsb3000Interface
 {
 public:
     // constructors
-    CUsb3000tgoInterface(uint32, uint32, const char *, const char *);
+    CUsb3080Interface(uint32, uint32, const char *, const char *);
     
     // destructor
-    virtual ~CUsb3000tgoInterface() {}
+    virtual ~CUsb3080Interface() {}
     
 protected:
     // low level
@@ -48,4 +48,4 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#endif /* cusb3000tgointerface_h */
+#endif /* cusb3080interface_h */
