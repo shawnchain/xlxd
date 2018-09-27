@@ -1,5 +1,5 @@
 //
-//  cusb3000tgointerface.cpp
+//  cusb3080interface.cpp
 //  ambed
 //
 //  Created by Jean-Luc Deltombe (LX3JL) on 21/08/2017.
@@ -25,13 +25,13 @@
 #include "main.h"
 #include "ctimepoint.h"
 #include "cambepacket.h"
-#include "cusb3000tgointerface.h"
+#include "cusb3080interface.h"
 #include "cvocodecs.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // constructor
 
-CUsb3000tgoInterface::CUsb3000tgoInterface(uint32 uiVid, uint32 uiPid, const char *szDeviceName, const char *szDeviceSerial)
+CUsb3080Interface::CUsb3080Interface(uint32 uiVid, uint32 uiPid, const char *szDeviceName, const char *szDeviceSerial)
 : CUsb3000Interface(uiVid, uiPid, szDeviceName, szDeviceSerial)
 {
 }
@@ -39,7 +39,7 @@ CUsb3000tgoInterface::CUsb3000tgoInterface(uint32 uiVid, uint32 uiPid, const cha
 ////////////////////////////////////////////////////////////////////////////////////////
 // low level
 
-bool CUsb3000tgoInterface::OpenDevice(void)
+bool CUsb3080Interface::OpenDevice(void)
 {
     FT_STATUS ftStatus;
     int baudrate = 460800;
