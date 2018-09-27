@@ -25,6 +25,7 @@
 #include "main.h"
 #include <string.h>
 #include "cusb3000interface.h"
+#include "cusb3000tgointerface.h"
 #include "cusb3003interface.h"
 #include "cusb3003hrinterface.h"
 #include "cusb3003df2etinterface.h"
@@ -167,6 +168,7 @@ int CFtdiDeviceDescr::GetNbChannels(void) const
     if ( (::strcmp(m_szDescription, "USB-3000")   == 0) ||           // DVSI's USB-3000
          (::strcmp(m_szDescription, "DVstick-30") == 0) ||           // DVMEGA AMBE3000 device
          (::strcmp(m_szDescription, "ThumbDV")    == 0) )            // ThumbDV
+         (::strcmp(m_szDescription, "Nano-3080")    == 0) )            // BG4TGO WT3080
     {
         iNbChs = 1;
     }
@@ -591,6 +593,11 @@ CUsb3000Interface *CFtdiDeviceDescr::InstantiateUsb3000(CFtdiDeviceDescr *descr)
         Usb3000 = new CUsb3000Interface
             (descr->GetVid(), descr->GetPid(), descr->GetDescription(), descr->GetSerialNumber());
     }
+    else if ( (::strcmp(descr->GetDescription(), "Nano-3080") == 0) )         // BG4TGO WT3080
+    {
+        Usb3000 = new CUsb3000BaoInterface
+            (descr->GetVid(), descr->GetPid(), descr->GetDescription(), descr->GetSerialNumber());
+    }    
     // done
     return Usb3000;
 }
