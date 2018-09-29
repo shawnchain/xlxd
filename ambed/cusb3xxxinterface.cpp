@@ -38,7 +38,7 @@
 
 CUsb3xxxInterface::CUsb3xxxInterface(uint32 uiVid, uint32 uiPid, const char *szDeviceName, const char *szDeviceSerial)
 {
-    m_FtdiHandle = NULL;
+    m_FtdiHandle = 0;
     m_uiVid = uiVid;
     m_uiPid = uiPid;
     ::strcpy(m_szDeviceName, szDeviceName);
@@ -78,7 +78,7 @@ bool CUsb3xxxInterface::Init(void)
     std::cout << "Opening " << m_szDeviceName << ":" << m_szDeviceSerial << " device" << std::endl;
     if ( ok &= OpenDevice() )
     {
-         // reset
+        // reset
     	//std::cout << "Reseting " << m_szDeviceName << "device" << std::endl;
         if ( ok &= ResetDevice() )
         {
@@ -94,7 +94,7 @@ bool CUsb3xxxInterface::Init(void)
         }
     }
     std::cout << std::endl;
-  
+
     // create our queues
     for ( int i = 0; i < GetNbChannels(); i++ )
     {
@@ -332,6 +332,7 @@ void CUsb3xxxInterface::Task(void)
 
 bool CUsb3xxxInterface::ReadDeviceVersion(void)
 {
+    printf("Reading device version ...\n");
     bool ok = false;
     int i, len;
     char rxpacket[128];
@@ -350,6 +351,7 @@ bool CUsb3xxxInterface::ReadDeviceVersion(void)
     // write packet
     if ( FTDI_write_packet(m_FtdiHandle, txpacket, sizeof(txpacket)) )
     {
+        CTimePoint::TaskSleepFor(50);
         // read reply
         len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) ) - 4;
         ok = (len != 0);
@@ -366,6 +368,7 @@ bool CUsb3xxxInterface::ReadDeviceVersion(void)
 
 bool CUsb3xxxInterface::DisableParity(void)
 {
+    printf("Diabling parity ...\n");
     bool ok = false;
     int len;
     char rxpacket[16];
@@ -383,6 +386,7 @@ bool CUsb3xxxInterface::DisableParity(void)
     // write packet
     if ( FTDI_write_packet(m_FtdiHandle, txpacket, sizeof(txpacket)) )
     {
+        CTimePoint::TaskSleepFor(50);
         // read reply
         len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) ) - 4;
         ok = ((len == 2) && (rxpacket[4] == PKT_PARITYMODE) &&(rxpacket[5] == 0x00) );
@@ -392,6 +396,7 @@ bool CUsb3xxxInterface::DisableParity(void)
 
 bool CUsb3xxxInterface::ConfigureChannel(uint8 pkt_ch, const uint8 *pkt_ratep, int in_gain, int out_gain)
 {
+    printf("Configuring channel ...\n");
     bool ok = false;
     int len;
     char rxpacket[64];
@@ -421,6 +426,7 @@ bool CUsb3xxxInterface::ConfigureChannel(uint8 pkt_ch, const uint8 *pkt_ratep, i
     // write packet
     if ( FTDI_write_packet(m_FtdiHandle, txpacket, sizeof(txpacket)) )
     {
+        CTimePoint::TaskSleepFor(50);
         // read reply
         len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) ) - 4;
         ok = ((len == 18) && (rxpacket[20] == PKT_INIT) &&(rxpacket[21] == 0x00) );

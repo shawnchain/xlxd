@@ -236,6 +236,7 @@ bool CVocodecs::DiscoverFtdiDevices(void)
         {
             // allocate the list
             list = new FT_DEVICE_LIST_INFO_NODE[iNbDevices];
+            printf("%d devices found\n",iNbDevices);
             
             // fill
             if ( FT_GetDeviceInfoList(list, (LPDWORD)&iNbDevices) == FT_OK )
@@ -243,10 +244,12 @@ bool CVocodecs::DiscoverFtdiDevices(void)
                 // process
                 for ( int i = 0; i < iNbDevices; i++ )
                 {
-                    std::cout << "Description : " << list[i].Description << "\t Serial : " << list[i].SerialNumber << std::endl;
+                    FT_DEVICE_LIST_INFO_NODE *dev = list + i;
+                    //std::cout << "Description : " << list[i].Description << "\t Serial : " << list[i].SerialNumber << std::endl;
+                    printf("Description : %s \t Serial : %s \n",dev->Description,dev->SerialNumber);
                     CFtdiDeviceDescr *descr = new CFtdiDeviceDescr(
-                        LOWORD(list[i].ID), HIWORD(list[i].ID),
-                        list[i].Description, list[i].SerialNumber);
+                        LOWORD(dev->ID), HIWORD(dev->ID),
+                        dev->Description, dev->SerialNumber);
                     m_FtdiDeviceDescrs.push_back(descr);
                 }
             }

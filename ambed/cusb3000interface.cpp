@@ -250,15 +250,18 @@ bool CUsb3000Interface::ResetDevice(void)
     //after that we send PKT_RESET to reset the device
     //As long as the AMBE3000 is able to receive via uart, this method will succeed in resetting it.
     
+    #if 1
     for ( int i = 0; i < 35 ; i++ )
     {
         FTDI_write_packet(m_FtdiHandle, zeropacket, sizeof(zeropacket));
     }
-    
-    
+    #endif
+    CTimePoint::TaskSleepFor(50);
+
     // write soft-reset packet
     if ( FTDI_write_packet(m_FtdiHandle, txpacket, sizeof(txpacket)) )
     {
+        CTimePoint::TaskSleepFor(150);
         // read reply
         len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) );
         ok = ((len == 5) && (rxpacket[4] == PKT_READY));
