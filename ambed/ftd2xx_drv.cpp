@@ -37,8 +37,8 @@ extern "C" {
 
 //#define sleep_ms(x) usleep(x * 1000)
 
-static void sleep_ms(uint32_t ms){
-    printf("sleep 2ms\n");
+static inline void sleep_ms(uint32_t ms){
+    //printf("sleep 2ms\n");
     usleep(ms * 1000);
 }
 
@@ -137,6 +137,7 @@ FTD2XX_API FT_STATUS WINAPI FT_OpenEx( PVOID pArg1, DWORD Flags, FT_HANDLE *pHan
     // setup speed to 460800
     cfsetospeed(&termios, B460800);
     cfsetispeed(&termios, B460800);
+    printf("Baudrate: %u\n",B460800);
 
     if (tcsetattr(fd, TCSANOW, &termios) < 0) {
         LogError("Cannot set the attributes for %s", device);
@@ -161,7 +162,7 @@ FTD2XX_API
         //TODO - reset the serial port buffer
         //Flush cache.
         tcflush((int)ftHandle, TCIFLUSH);
-        sleep_ms(2);
+        //sleep_ms(2);
         return 0;
     }
 

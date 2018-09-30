@@ -26,6 +26,8 @@
 #include "ctimepoint.h"
 #include "cambeserver.h"
 
+#include "Log.h"
+
 #include "syslog.h"
 #include <sys/stat.h>
 
@@ -39,6 +41,8 @@
 
 int main(int argc, const char * argv[])
 {
+    
+    LogInitialise(std::string("/tmp"),std::string("ambed"),2,1);
 #ifdef RUN_AS_DAEMON
     
     // redirect cout, cerr and clog to syslog
@@ -126,6 +130,7 @@ int main(int argc, const char * argv[])
     g_AmbeServer.Stop();
     std::cout << "AMBEd stopped" << std::endl;
     
+    LogFinalise();
     // done
     exit(EXIT_SUCCESS);
 }

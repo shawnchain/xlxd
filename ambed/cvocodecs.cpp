@@ -25,6 +25,7 @@
 #include "main.h"
 #include <string.h>
 #include "cvocodecs.h"
+#include "Log.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // global object
@@ -88,18 +89,19 @@ bool CVocodecs::Init(void)
 
     // and create interfaces for the discovered devices
     // first handle all even number of channels devices
-    std::vector<CVocodecChannel *>  Multi3003DevicesChs;
-    for ( int i = 0; i < m_FtdiDeviceDescrs.size(); i++ )
-    {
-        CFtdiDeviceDescr *descr = m_FtdiDeviceDescrs[i];
-        if ( !descr->IsUsed() && IsEven(descr->GetNbChannels()) )
-        {
-            // create the object
-            iNbCh += CFtdiDeviceDescr::CreateInterface(descr, &Multi3003DevicesChs);
-            // and flag as used
-            descr->SetUsed(true);
-        }
-    }
+    // std::vector<CVocodecChannel *>  Multi3003DevicesChs;
+    // for ( int i = 0; i < m_FtdiDeviceDescrs.size(); i++ )
+    // {
+    //     CFtdiDeviceDescr *descr = m_FtdiDeviceDescrs[i];
+    //     if ( !descr->IsUsed() && IsEven(descr->GetNbChannels()) )
+    //     {
+    //         // create the object
+    //         iNbCh += CFtdiDeviceDescr::CreateInterface(descr, &Multi3003DevicesChs);
+    //         // and flag as used
+    //         descr->SetUsed(true);
+    //     }
+    // }
+
     // next handle all single channel devices.
     // they must be handeled in pair, or in pair with another
     // even number of channels device.
@@ -129,42 +131,43 @@ bool CVocodecs::Init(void)
             }
         }
     }
-    // now we should have only remaining the 3 channels device(s)
-    // and possibly an unique single channel device
-    std::vector<CVocodecChannel *>  Single3003DeviceChannels;
-    for ( int i = 0; i < m_FtdiDeviceDescrs.size(); i++ )
-    {
-        CFtdiDeviceDescr *descr1 = m_FtdiDeviceDescrs[i];
-        CFtdiDeviceDescr *descr2 = NULL;
-        if ( !descr1->IsUsed() && (descr1->GetNbChannels() == 3) )
-        {
-            // any other odd channel device to pair with ?
-            // any other single channel device to pair with ?
-            bool found = false;
-            int j = i+1;
-            while ( !found && (j < m_FtdiDeviceDescrs.size()) )
-            {
-                descr2 = m_FtdiDeviceDescrs[j];
-                found = (!descr2->IsUsed() && IsOdd(descr2->GetNbChannels()));
-            }
-            // found one ?
-            if ( found )
-            {
-                // yes, create and pairboth interfaces
-                iNbCh += CFtdiDeviceDescr::CreateInterfacePair(descr1, descr2, &Multi3003DevicesChs);
-                // and flag as used
-                descr1->SetUsed(true);
-                descr2->SetUsed(true);
-            }
-            else
-            {
-                // no, just create a standalone 3003 interface
-                iNbCh += CFtdiDeviceDescr::CreateInterface(descr1, &Single3003DeviceChannels);
-                // and flag as used
-                descr1->SetUsed(true);
-            }
-        }
-    }
+
+    // // now we should have only remaining the 3 channels device(s)
+    // // and possibly an unique single channel device
+    // std::vector<CVocodecChannel *>  Single3003DeviceChannels;
+    // for ( int i = 0; i < m_FtdiDeviceDescrs.size(); i++ )
+    // {
+    //     CFtdiDeviceDescr *descr1 = m_FtdiDeviceDescrs[i];
+    //     CFtdiDeviceDescr *descr2 = NULL;
+    //     if ( !descr1->IsUsed() && (descr1->GetNbChannels() == 3) )
+    //     {
+    //         // any other odd channel device to pair with ?
+    //         // any other single channel device to pair with ?
+    //         bool found = false;
+    //         int j = i+1;
+    //         while ( !found && (j < m_FtdiDeviceDescrs.size()) )
+    //         {
+    //             descr2 = m_FtdiDeviceDescrs[j];
+    //             found = (!descr2->IsUsed() && IsOdd(descr2->GetNbChannels()));
+    //         }
+    //         // found one ?
+    //         if ( found )
+    //         {
+    //             // yes, create and pairboth interfaces
+    //             iNbCh += CFtdiDeviceDescr::CreateInterfacePair(descr1, descr2, &Multi3003DevicesChs);
+    //             // and flag as used
+    //             descr1->SetUsed(true);
+    //             descr2->SetUsed(true);
+    //         }
+    //         else
+    //         {
+    //             // no, just create a standalone 3003 interface
+    //             iNbCh += CFtdiDeviceDescr::CreateInterface(descr1, &Single3003DeviceChannels);
+    //             // and flag as used
+    //             descr1->SetUsed(true);
+    //         }
+    //     }
+    // }
     
     // now agregate channels by order of priority
     // for proper load sharing
@@ -176,37 +179,38 @@ bool CVocodecs::Init(void)
         }
         PairsOf3000DevicesChs.clear();
     }
-    // next the left-over single 3003 device
-    {
-        for ( int i = 0;  i < Single3003DeviceChannels.size(); i++ )
-        {
-            m_Channels.push_back(Single3003DeviceChannels.at(i));
-        }
-        Single3003DeviceChannels.clear();
-    }
-    // and finally interlace multi-3003 and pairs of 3003 devices which always
-    // results to 6 channels per pair of 3003
-    {
-        int n = (int)Multi3003DevicesChs.size() / 6;
-        for ( int i = 0; i < 6; i++ )
-        {
-            for ( int j = 0; j < n; j++ )
-            {
-                m_Channels.push_back(Multi3003DevicesChs.at((j*6) + i));
-            }
-        }
-        Multi3003DevicesChs.clear();
-    }
+
+    // // next the left-over single 3003 device
+    // {
+    //     for ( int i = 0;  i < Single3003DeviceChannels.size(); i++ )
+    //     {
+    //         m_Channels.push_back(Single3003DeviceChannels.at(i));
+    //     }
+    //     Single3003DeviceChannels.clear();
+    // }
+    // // and finally interlace multi-3003 and pairs of 3003 devices which always
+    // // results to 6 channels per pair of 3003
+    // {
+    //     int n = (int)Multi3003DevicesChs.size() / 6;
+    //     for ( int i = 0; i < 6; i++ )
+    //     {
+    //         for ( int j = 0; j < n; j++ )
+    //         {
+    //             m_Channels.push_back(Multi3003DevicesChs.at((j*6) + i));
+    //         }
+    //     }
+    //     Multi3003DevicesChs.clear();
+    // }
     
     
     // done
     if ( ok )
     {
-        std::cout << "Codec interfaces initialized successfully : " << iNbCh << " channels available" << std::endl;
+        LogInfo("Codec interfaces initialized successfully : %d channels available", iNbCh);
     }
     else
     {
-        std::cout << "At least one codec interfaces failed to initialize : " << iNbCh << " channels availables" << std::endl;
+        LogError("At least one codec interfaces failed to initialize : %d channels available", iNbCh);
     }
     // done
     return ok;
@@ -230,13 +234,12 @@ bool CVocodecs::DiscoverFtdiDevices(void)
     // and discover
     if ( FT_CreateDeviceInfoList((LPDWORD)&iNbDevices) == FT_OK )
     {
-        std::cout << "Detected " << iNbDevices << " USB-FTDI devices" << std::endl << std::endl;
+        LogInfo("Detected %d USB-FTDI devices", iNbDevices);
         ok = true;
         if ( iNbDevices > 0 )
         {
             // allocate the list
             list = new FT_DEVICE_LIST_INFO_NODE[iNbDevices];
-            printf("%d devices found\n",iNbDevices);
             
             // fill
             if ( FT_GetDeviceInfoList(list, (LPDWORD)&iNbDevices) == FT_OK )
@@ -246,7 +249,7 @@ bool CVocodecs::DiscoverFtdiDevices(void)
                 {
                     FT_DEVICE_LIST_INFO_NODE *dev = list + i;
                     //std::cout << "Description : " << list[i].Description << "\t Serial : " << list[i].SerialNumber << std::endl;
-                    printf("Description : %s \t Serial : %s \n",dev->Description,dev->SerialNumber);
+                    LogInfo("Description : %s \t Serial : %s",dev->Description,dev->SerialNumber);
                     CFtdiDeviceDescr *descr = new CFtdiDeviceDescr(
                         LOWORD(dev->ID), HIWORD(dev->ID),
                         dev->Description, dev->SerialNumber);

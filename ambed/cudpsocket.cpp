@@ -107,7 +107,11 @@ int CUdpSocket::Receive(CBuffer *Buffer, CIp *Ip, int timeout)
         FD_SET(m_Socket, &FdSet);
         tv.tv_sec = timeout / 1000;
         tv.tv_usec = (timeout % 1000) * 1000;
-        select(m_Socket + 1, &FdSet, 0, 0, &tv);
+        int n = select(m_Socket + 1, &FdSet, 0, 0, &tv);
+        if (n == 0){
+            //printf("CUdpSocket::Receive() timeout!");
+            return 0;
+        }
         
         // allocate buffer
         Buffer->resize(UDP_BUFFER_LENMAX);

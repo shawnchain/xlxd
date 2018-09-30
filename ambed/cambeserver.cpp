@@ -28,6 +28,8 @@
 #include "cvocodecs.h"
 #include "cambeserver.h"
 
+#include "Log.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 CAmbeServer g_AmbeServer;
@@ -69,10 +71,10 @@ bool CAmbeServer::Start(void)
     bool ok = true;
     
     // init interfaces & controller
-    std::cout << "Initializing vocodecs:" << std::endl;
+    LogInfo("Initializing vocodecs");
     ok &= g_Vocodecs.Init();
-    std::cout << std::endl;
-    std::cout << "Initializing controller" << std::endl;
+    
+    LogInfo("Initializing controller");
     ok &= m_Controller.Init();
     std::cout << std::endl;
     
@@ -109,6 +111,7 @@ void CAmbeServer::Stop(void)
 
 void CAmbeServer::Thread(CAmbeServer *This)
 {
+    LogDebug("CAmbeServer thread started.");
     while ( !This->m_bStopThreads )
     {
         This->Task();

@@ -26,7 +26,7 @@
 #include "ctimepoint.h"
 #include "cpacketqueue.h"
 #include "cvocodecinterface.h"
-
+#include "Log.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -77,6 +77,7 @@ bool CVocodecInterface::Init(void)
 
 void CVocodecInterface::Thread(CVocodecInterface *This)
 {
+    LogDebug("CVocodecInterface IO thread started");
     while ( !This->m_bStopThread )
     {
         This->Task();

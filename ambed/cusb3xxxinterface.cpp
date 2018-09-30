@@ -29,6 +29,8 @@
 #include "cvocodecchannel.h"
 #include "cambeserver.h"
 
+#include "Log.h"
+
 // queues ID
 #define QUEUE_CHANNEL       0
 #define QUEUE_SPEECH        1
@@ -75,7 +77,7 @@ bool CUsb3xxxInterface::Init(void)
     bool ok = true;
     
     // open USB device
-    std::cout << "Opening " << m_szDeviceName << ":" << m_szDeviceSerial << " device" << std::endl;
+    LogInfo("Opening %s:%s", m_szDeviceName, m_szDeviceSerial);
     if ( ok &= OpenDevice() )
     {
         // reset
@@ -93,7 +95,6 @@ bool CUsb3xxxInterface::Init(void)
             }
         }
     }
-    std::cout << std::endl;
 
     // create our queues
     for ( int i = 0; i < GetNbChannels(); i++ )
@@ -125,7 +126,9 @@ void CUsb3xxxInterface::Task(void)
     CAmbePacket     AmbePacket;
     CVoicePacket    VoicePacket;
     bool            done;
-    
+    CTimePoint      t;
+    bool            log = false;
+    static int i1 = 0,i2 = 0,i3=0;
     // TODO :
     //      preserve packets PIDs, so the transcoded CAmbePacket returned
     //      to CStream client is garantied to have the same PID
@@ -156,6 +159,7 @@ void CUsb3xxxInterface::Task(void)
                 Queue->push(clone);
                 Channel->ReleaseVoiceQueue();
             }
+            LogDebug("Device %s decoded speech packet %d",m_szDeviceSerial,++i1);
         }
         else if ( IsValidChannelPacket(Buffer, &iCh, &AmbePacket) )
         {
@@ -175,12 +179,20 @@ void CUsb3xxxInterface::Task(void)
                 Queue->push(clone);
                 Channel->ReleasePacketQueueOut();
             }
+            LogDebug("Device %s encoded ambe packet %d",m_szDeviceSerial,++i2);
+        }else{
+            LogDebug("Device %s decoded unknown packet %d",m_szDeviceSerial,++i3);
         }
+        LogDebug("<<< Read Device Response elapsed %.3f ms",t.DurationSinceNow() * 1000);
     }
+    if(i1 >=1000)i1=0;
+    if(i2 >=1000)i2=0;
+    if(i3 >=1000)i3=0;
     
     // process the streams (channels) incoming queue
     // make sure that packets from different channels
     // are interlaced so to keep the device fifo busy
+    t.Now();
     do
     {
         done = true;
@@ -206,6 +218,7 @@ void CUsb3xxxInterface::Task(void)
                     m_SpeechQueues[i]->push(Packet);
                     // done
                     done = false;
+                    log = true;
                 }
                 Channel->ReleaseVoiceQueue();
             }
@@ -227,15 +240,21 @@ void CUsb3xxxInterface::Task(void)
                     m_ChannelQueues[i]->push(Packet);
                     // done
                     done = false;
+                    log = true;
                 }
                 Channel->ReleasePacketQueueIn();
             }
         }
     } while (!done);
+    if(log){
+        LogDebug("Process Stream In/Out elapsed %.3f ms",t.DurationSinceNow() * 1000);
+    }
     
     // process device incoming queues (aka to device)
     // interlace speech and channels packets
     // and post to final device queue
+    t.Now();
+    log = false;
     do
     {
         done = true;
@@ -252,6 +271,7 @@ void CUsb3xxxInterface::Task(void)
                 m_DeviceQueue.push(Packet);
                 // next
                 done = false;
+                log = true;
             }
             // ambe
             if ( !m_ChannelQueues[i]->empty() )
@@ -262,14 +282,19 @@ void CUsb3xxxInterface::Task(void)
                 // and push to device queue
                 m_DeviceQueue.push(Packet);
                 // done = false;
+                log = true;
             }
         }
         
     } while (!done);
+    if(log)
+        LogDebug("Process Codec In/Out elapsed %.3f ms",t.DurationSinceNow() * 1000);
     
     // process device queue to feed hardware
     // make sure that device fifo is fed all the time
     int fifoSize = GetDeviceFifoSize();
+    t.Now();
+    log = false;
     do
     {
         done = true;
@@ -281,6 +306,7 @@ void CUsb3xxxInterface::Task(void)
             // any packet to send ?
             if ( m_DeviceQueue.size() > 0 )
             {
+                log = true;
                 // yes, get it
                 CPacket *Packet = m_DeviceQueue.front();
                 if ( Packet->IsVoice() && (m_iSpeechFifolLevel < fifoSize) )
@@ -321,6 +347,8 @@ void CUsb3xxxInterface::Task(void)
             }
         }
     } while (!done);
+    if(log)
+        LogDebug(">>> Send Device Requests elapsed %.3f ms",t.DurationSinceNow() * 1000);
     
     // and wait a bit
     CTimePoint::TaskSleepFor(2);
@@ -332,7 +360,7 @@ void CUsb3xxxInterface::Task(void)
 
 bool CUsb3xxxInterface::ReadDeviceVersion(void)
 {
-    printf("Reading device version ...\n");
+    //LogDebug("Reading device version ...");
     bool ok = false;
     int i, len;
     char rxpacket[128];
@@ -356,7 +384,7 @@ bool CUsb3xxxInterface::ReadDeviceVersion(void)
         len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) ) - 4;
         ok = (len != 0);
         //we succeed in reading a packet, print it out
-        std::cout << "ReadDeviceVersion : ";
+        LogDebug("ReadDeviceVersion : ");
         for ( i = 4; i < len+4 ; i++ )
         {
             std::cout << (char)(rxpacket[i] & 0x00ff);
@@ -368,7 +396,6 @@ bool CUsb3xxxInterface::ReadDeviceVersion(void)
 
 bool CUsb3xxxInterface::DisableParity(void)
 {
-    printf("Diabling parity ...\n");
     bool ok = false;
     int len;
     char rxpacket[16];
@@ -396,7 +423,6 @@ bool CUsb3xxxInterface::DisableParity(void)
 
 bool CUsb3xxxInterface::ConfigureChannel(uint8 pkt_ch, const uint8 *pkt_ratep, int in_gain, int out_gain)
 {
-    printf("Configuring channel ...\n");
     bool ok = false;
     int len;
     char rxpacket[64];
@@ -441,20 +467,22 @@ bool CUsb3xxxInterface::ConfigureChannel(uint8 pkt_ch, const uint8 *pkt_ratep, i
 
 bool CUsb3xxxInterface::ReadBuffer(CBuffer *buffer)
 {
+    CTimePoint t;
     bool ok = false;
     int n;
-   
+
     // any byte in tx queue ?
     if  ( FT_GetQueueStatus(m_FtdiHandle, (LPDWORD)&n) == FT_OK )
     {
         //if ( (FT_GetQueueStatus(m_FtdiHandle, (LPDWORD)&n) == FT_OK) && (n != 0) )
-        if ( n != 0 )
+        if ( n > 0 )
         {
             buffer->clear();
             buffer->resize(USB3XXX_MAXPACKETSIZE);
             n = FTDI_read_packet(m_FtdiHandle, (char *)buffer->data(), USB3XXX_MAXPACKETSIZE);
             buffer->resize(n);
             ok = (n != 0);
+            //LogDebug("ReadBuffer elapsed %.3f ms",t.DurationSinceNow() * 1000);
         }
     }
     return ok;
@@ -462,7 +490,11 @@ bool CUsb3xxxInterface::ReadBuffer(CBuffer *buffer)
 
 bool CUsb3xxxInterface::WriteBuffer(const CBuffer &buffer)
 {
-    return FTDI_write_packet(m_FtdiHandle, (const char *)buffer.data(), (int)buffer.size());
+    bool ret = false;
+    CTimePoint t;
+    ret = FTDI_write_packet(m_FtdiHandle, (const char *)buffer.data(), (int)buffer.size());
+    //LogDebug("WriteBuffer elapsed %.3f ms",t.DurationSinceNow() * 1000);
+    return ret;
 }
 
 int CUsb3xxxInterface::FTDI_read_packet(FT_HANDLE ftHandle, char *pkt, int maxlen)

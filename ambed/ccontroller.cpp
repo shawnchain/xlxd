@@ -109,6 +109,7 @@ void CController::Close(void)
 
 void CController::Thread(CController *This)
 {
+    printf("CController thread started.\n");
     while ( !This->m_bStopThread )
     {
         This->Task();

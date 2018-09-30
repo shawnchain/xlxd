@@ -104,7 +104,7 @@ protected:
     bool DisableParity(void);
     virtual bool ConfigureDevice(void)                      { return false; }
     bool ConfigureChannel(uint8, const uint8 *, int, int);
-    virtual int GetDeviceFifoSize(void) const              { return 1; }
+    virtual int GetDeviceFifoSize(void) const              { return 5; }
     
     // io level
     bool ReadBuffer(CBuffer *);

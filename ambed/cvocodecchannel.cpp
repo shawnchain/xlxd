@@ -27,6 +27,7 @@
 #include "cvocodecchannel.h"
 #include "cvocodecinterface.h"
 
+#include "Log.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -60,9 +61,10 @@ bool CVocodecChannel::Open(void)
         m_bOpen = true;
         ok = true;
         PurgeAllQueues();
-        std::cout << "Vocodec channel " <<
-            m_InterfaceIn->GetName() << ":" << (int)m_iChannelIn << " -> " <<
-            m_InterfaceOut->GetName() << ":" << (int)m_iChannelOut << " open" << std::endl;
+        LogInfo("Vocodec channel %s:%d -> %s:%d open",m_InterfaceIn->GetSerial(),m_iChannelIn,m_InterfaceOut->GetSerial(),m_iChannelOut);
+        // std::cout << "Vocodec channel " <<
+        //     m_InterfaceIn->GetName() << ":" << (int)m_iChannelIn << " -> " <<
+        //     m_InterfaceOut->GetName() << ":" << (int)m_iChannelOut << " open" << std::endl;
     }
     return ok;
 }
@@ -73,9 +75,10 @@ void CVocodecChannel::Close(void)
     {
         m_bOpen = false;
         PurgeAllQueues();
-        std::cout << "Vocodec channel " <<
-        m_InterfaceIn->GetName() << ":" << (int)m_iChannelIn << " -> " <<
-        m_InterfaceOut->GetName() << ":" << (int)m_iChannelOut << " closed" << std::endl;
+        LogInfo("Vocodec channel %s:%d -> %s:%d closed",m_InterfaceIn->GetSerial(),m_iChannelIn,m_InterfaceOut->GetSerial(),m_iChannelOut);
+        // std::cout << "Vocodec channel " <<
+        // m_InterfaceIn->GetName() << ":" << (int)m_iChannelIn << " -> " <<
+        // m_InterfaceOut->GetName() << ":" << (int)m_iChannelOut << " closed" << std::endl;
     }
 }
 

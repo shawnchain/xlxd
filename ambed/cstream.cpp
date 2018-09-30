@@ -30,6 +30,8 @@
 #include "cambepacket.h"
 #include "cstream.h"
 
+#include "Log.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // define
 
@@ -158,6 +160,7 @@ void CStream::Close(void)
 
 void CStream::Thread(CStream *This)
 {
+    LogDebug("CStrema thread started.");
     while ( !This->m_bStopThread )
     {
         This->Task();
@@ -177,7 +180,8 @@ void CStream::Task(void)
     CPacketQueue *queue;
     
     // anything coming in from codec client ?
-    if ( m_Socket.Receive(&Buffer, &Ip, 1) != -1 )
+    int n = m_Socket.Receive(&Buffer, &Ip, 1);
+    if ( n > 0 )
     {
         // crack packet
         if ( IsValidDvFramePacket(Buffer, &uiPid, Ambe) )
@@ -191,6 +195,9 @@ void CStream::Task(void)
             queue = m_VocodecChannel->GetPacketQueueIn();
             queue->push(packet);
             m_VocodecChannel->ReleasePacketQueueIn();
+            LogDebug("CStream received DVFramePacket #%d",m_iTotalPackets);
+        }else{
+            LogInfo("CStream received invalid DVFramePacket\n");
         }
     }
     

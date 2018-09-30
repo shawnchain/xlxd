@@ -28,6 +28,8 @@
 #include "cusb3000interface.h"
 #include "cvocodecs.h"
 
+#include "Log.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // configuration:
 //
@@ -131,13 +133,12 @@ bool CUsb3000Interface::IsValidChannelPacket(const CBuffer &buffer, int *ch, CAm
 bool CUsb3000Interface::IsValidSpeechPacket(const CBuffer &buffer, int *ch, CVoicePacket *packet)
 {
     bool valid = false;
-    
     if ( (buffer.size() > 6) &&
         (buffer.data()[0] == PKT_HEADER) && (buffer.data()[3] == PKT_SPEECH) &&
         (buffer.data()[4] == PKT_SPEECHD) )
     {
         *ch = 0;
-        packet->SetVoice(&(buffer.data()[6]), buffer.data()[5] * 2);
+        packet->SetVoice(&(buffer.data()[6]), buffer.data()[5] * 2 /*320*/);
         valid = (*ch < GetNbChannels());
         //std::cout << "SPCH " << *ch << " " << buffer.size() << std::endl;
     }
@@ -278,7 +279,9 @@ bool CUsb3000Interface::ResetDevice(void)
 bool CUsb3000Interface::ConfigureDevice(void)
 {
     bool ok = true;
+    // 2500/1200 - AMBE+  - DStar
     uint8 pkt_ratep_ambeplus[]  = { 0x01,0x30,0x07,0x63,0x40,0x00,0x00,0x00,0x00,0x00,0x00,0x48 };
+    // 2450/1150 - AMBE+2 - DMR/P25 half/Index rate #33
     uint8 pkt_ratep_ambe2plus[] = { 0x04,0x31,0x07,0x54,0x24,0x00,0x00,0x00,0x00,0x00,0x6F,0x48 };
     
     // configure the channel for desired codec
@@ -286,9 +289,11 @@ bool CUsb3000Interface::ConfigureDevice(void)
     {
         case CODEC_AMBEPLUS:
             ok &= ConfigureChannel(PKT_CHANNEL0, pkt_ratep_ambeplus, 0, 0);
+            LogDebug("Device %s:%s configured for AMBE+",m_szDeviceName,m_szDeviceSerial);
             break;
         case CODEC_AMBE2PLUS:
             ok &= ConfigureChannel(PKT_CHANNEL0, pkt_ratep_ambe2plus, 0, 0);
+            LogDebug("Device %s:%s configured for AMBE+2",m_szDeviceName,m_szDeviceSerial);
             break;
         case CODEC_NONE:
         default:
