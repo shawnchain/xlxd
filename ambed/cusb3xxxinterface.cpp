@@ -217,7 +217,7 @@ void CUsb3xxxInterface::Task(void)
                     Packet->SetChannel(i);
                     m_SpeechQueues[i]->push(Packet);
                     // done
-                    done = false;
+                    //done = false;
                     log = true;
                 }
                 Channel->ReleaseVoiceQueue();
@@ -239,7 +239,7 @@ void CUsb3xxxInterface::Task(void)
                     Packet->SetChannel(i);
                     m_ChannelQueues[i]->push(Packet);
                     // done
-                    done = false;
+                    //done = false;
                     log = true;
                 }
                 Channel->ReleasePacketQueueIn();
@@ -270,7 +270,7 @@ void CUsb3xxxInterface::Task(void)
                 // and push to device queue
                 m_DeviceQueue.push(Packet);
                 // next
-                done = false;
+                //done = false;
                 log = true;
             }
             // ambe
@@ -306,11 +306,11 @@ void CUsb3xxxInterface::Task(void)
             // any packet to send ?
             if ( m_DeviceQueue.size() > 0 )
             {
-                log = true;
                 // yes, get it
                 CPacket *Packet = m_DeviceQueue.front();
                 if ( Packet->IsVoice() && (m_iSpeechFifolLevel < fifoSize) )
                 {
+                    log = true;
                     // encode & post
                     EncodeSpeechPacket(&Buffer, Packet->GetChannel(), (CVoicePacket *)Packet);
                     WriteBuffer(Buffer);
@@ -321,13 +321,14 @@ void CUsb3xxxInterface::Task(void)
                     // update fifo level
                     m_iSpeechFifolLevel++;
                     // next
-                    done = false;
+                    //done = false;
 #ifdef DEBUG_DUMPFILE
                     g_AmbeServer.m_DebugFile << m_szDeviceName << "\t" << "Sp" << Packet->GetChannel() << "->" << std::endl; std::cout.flush();
 #endif
                 }
                 else if ( Packet->IsAmbe() && (m_iChannelFifolLevel < fifoSize) )
                 {
+                    log = true;
                     // encode & post
                     EncodeChannelPacket(&Buffer, Packet->GetChannel(), (CAmbePacket *)Packet);
                     WriteBuffer(Buffer);
@@ -338,7 +339,7 @@ void CUsb3xxxInterface::Task(void)
                     // update fifo level
                     m_iChannelFifolLevel++;
                     // next
-                    done = false;
+                    //done = false;
 #ifdef DEBUG_DUMPFILE
                     g_AmbeServer.m_DebugFile << m_szDeviceName << "\t" << "Ch" << Packet->GetChannel() << "->" << std::endl; std::cout.flush();
 #endif
@@ -347,8 +348,9 @@ void CUsb3xxxInterface::Task(void)
             }
         }
     } while (!done);
-    if(log)
+    if(log){
         LogDebug(">>> Send Device Requests elapsed %.3f ms",t.DurationSinceNow() * 1000);
+    }
     
     // and wait a bit
     CTimePoint::TaskSleepFor(2);
@@ -534,7 +536,8 @@ bool CUsb3xxxInterface::FTDI_read_bytes(FT_HANDLE ftHandle, char *buffer, int le
     if ( !ok )
     {
         //FT_Purge(ftHandle, FT_PURGE_RX);
-        std::cout << "FTDI_read_bytes(" << len << ") failed : " << n << std::endl;
+        LogInfo("FTDI_read_bytes(%d) failed, %d bytes returned",len,n);
+        //std::cout << "FTDI_read_bytes(" << len << ") failed : " << n << std::endl;
     }
     
     return ok;

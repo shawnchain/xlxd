@@ -42,7 +42,7 @@
 int main(int argc, const char * argv[])
 {
     
-    LogInitialise(std::string("/tmp"),std::string("ambed"),2,1);
+    LogInitialise(std::string("/tmp"),std::string("ambed"),2,2);
 #ifdef RUN_AS_DAEMON
     
     // redirect cout, cerr and clog to syslog

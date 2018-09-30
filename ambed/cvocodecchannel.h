@@ -63,8 +63,8 @@ public:
     void ReleasePacketQueueIn(void)         { m_QueuePacketIn.Unlock(); }
     CPacketQueue *GetPacketQueueOut(void)   { m_QueuePacketOut.Lock(); return &m_QueuePacketOut; }
     void ReleasePacketQueueOut(void)        { m_QueuePacketOut.Unlock(); }
-    CPacketQueue *GetVoiceQueue(void)       { /*m_QueueVoice.Lock();*/ return &m_QueueVoice; }
-    void ReleaseVoiceQueue(void)            { /*m_QueueVoice.Unlock();*/ }
+    CPacketQueue *GetVoiceQueue(void)       { m_QueueVoice.Lock(); return &m_QueueVoice; }
+    void ReleaseVoiceQueue(void)            { m_QueueVoice.Unlock(); }
 
     // operators
     //virtual bool operator ==(const CVocodecChannel &) const   { return false; }

@@ -216,9 +216,6 @@ FTD2XX_API FT_STATUS WINAPI FT_Read( FT_HANDLE ftHandle, LPVOID lpBuffer, DWORD 
 			tv.tv_sec  = 0;
 			tv.tv_usec = 0;
 			n = select(m_fd + 1, &fds, NULL, NULL, &tv);
-			if (n == 0){
-				return 0;
-            }
 		} else {
 			n = select(m_fd + 1, &fds, NULL, NULL, NULL);
 		}
@@ -242,7 +239,7 @@ FTD2XX_API FT_STATUS WINAPI FT_Read( FT_HANDLE ftHandle, LPVOID lpBuffer, DWORD 
 		}
 	}
 
-    *lpBytesReturned = length;
+    *lpBytesReturned = offset;
     return 0;    
 }
 
