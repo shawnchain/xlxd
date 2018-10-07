@@ -1,6 +1,10 @@
-CC:=g++
-CFLAGS +=-std=c++11 -pthread -DNO_FTDI_LIB
-LDFLAGS +=-std=c++11 -pthread
+CC      = gcc
+CXX     = g++
+CFLAGS  = -g -O3 -Wall -c -std=c++11 -pthread -DNO_FTDI_LIB
+LDFLAGS = -g -O3 -Wall -std=c++11
+LIBS    = -lpthread
+LDFLAGS = -g
+
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=ambed
@@ -8,10 +12,10 @@ EXECUTABLE=ambed
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CXX) $(LDFLAGS) $(LIBS) $(OBJECTS) -o $@
 
 .cpp.o:
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 clean:
 	$(RM) $(EXECUTABLE) *.o
